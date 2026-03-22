@@ -180,7 +180,8 @@ if __name__ == '__main__':
             db.session.add(instructor)
             db.session.commit()
 
-    app.run(host= '0.0.0.0', port=5000, debug=True)
+    if __name__ == "__main__":
+    app.run()
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -355,3 +356,8 @@ def add_instructor():
         return "Instructor Added Successfully"
 
     return render_template('add_instructor.html')
+
+
+
+    with app.app_context():
+         db.create_all()
