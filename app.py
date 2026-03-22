@@ -183,10 +183,7 @@ if __name__ == '__main__':
     if __name__ == "__main__":
          app.run()
 
-class Question(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    question = db.Column(db.String(500))
-    answer = db.Column(db.String(100))
+
 
 @app.route('/add_question', methods=['GET', 'POST'])
 @login_required
