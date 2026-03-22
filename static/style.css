@@ -1,0 +1,64 @@
+body {
+    font-family: Arial;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 400px;
+    margin: auto;
+    margin-top: 40px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Heading */
+h2 {
+    text-align: center;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* List */
+ul {
+    padding: 0;
+}
+
+li {
+    list-style: none;
+    background: #eef;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Responsive for larger screens */
+@media (min-width: 768px) {
+    .container {
+        max-width: 600px;
+    }
+}

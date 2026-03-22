@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<h3>📊 Dashboard Stats</h3>
+
+<div style="display:flex; flex-wrap:wrap; gap:15px;">
+
+  <div style="background:#e3f2fd; padding:15px; border-radius:10px;">
+    👩‍🎓 Students: {{ total_students }}
+  </div>
+
+  <div style="background:#e8f5e9; padding:15px; border-radius:10px;">
+    👨‍🏫 Instructors: {{ total_instructors }}
+  </div>
+
+  <div style="background:#fff3e0; padding:15px; border-radius:10px;">
+    ❓ Questions: {{ total_questions }}
+  </div>
+
+  <div style="background:#fce4ec; padding:15px; border-radius:10px;">
+    📝 Attempts: {{ total_attempts }}
+  </div>
+
+  <div style="background:#ede7f6; padding:15px; border-radius:10px;">
+    📈 Avg Score: {{ avg_score }}%
+  </div>
+
+</div>
+
+<hr>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="container">
+
+  <h2>Admin Dashboard</h2>
+
+  <!-- ACTION BUTTONS -->
+  <button onclick="location.href='/add_instructor'">Add Instructor</button>
+  <button onclick="location.href='/add_question'">Add Question</button>
+  <button onclick="location.href='/logout'">Logout</button>
+
+  <hr>
+
+  <!-- USERS -->
+  <h3>Users</h3>
+  <ul>
+  {% for user in users %}
+    <li>
+      {{ user.name }} ({{ user.role }})
+
+      {% if user.role == 'student' %}
+        → Instructor: {{ instructors.get(user.instructor_id, 'None') }}
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+
+  <hr>
+
+  <!-- QUESTIONS -->
+  <h3>Questions</h3>
+  <ul>
+  {% for q in questions %}
+    <li>{{ q.question }} → {{ q.answer }}</li>
+  {% endfor %}
+  </ul>
+
+  <hr>
+
+  <!-- RESULTS -->
+  <h3>Results</h3>
+  <ul>
+  {% for r in results %}
+    <li>
+      Student ID: {{ r.student_id }} |
+      Q{{ r.question_id }} |
+      Answer: {{ r.selected_answer }} |
+      Correct: {{ r.correct_answer }}
+    </li>
+  {% endfor %}
+  </ul>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="container">
+  <h2>Instructor Panel</h2>
+
+  <h3>Student List</h3>
+  <ul>
+  {% for student in students %}
+    <li>{{ student.name }}<br>{{ student.email }}</li>
+  {% endfor %}
+  </ul>
+<h2>Student Results</h2>
+
+<h2>Student Results</h2>
+
+<ul>
+{% for r in results %}
+  <li>
+    Student {{ r.student_id }} |
+    Q{{ r.question_id }} |
+    Your Answer: {{ r.selected_answer }} |
+    Correct: {{ r.correct_answer }} |
+    {% if r.is_correct %}
+      ✅ Correct
+    {% else %}
+      ❌ Wrong
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>
+
+  <button onclick="location.href='/logout'">Logout</button>
+</div>
+</body>
+</html>

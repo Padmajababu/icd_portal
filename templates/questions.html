@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="container">
+  <h2>Add ICD Question</h2>
+
+  <form method="POST">
+    <input type="text" name="question" placeholder="Enter Question">
+    <input type="text" name="answer" placeholder="Enter Answer">
+    <button type="submit">Add Question</button>
+  </form>
+
+  <button onclick="location.href='/admin'">Back</button>
+</div>
+</body>
+</html>

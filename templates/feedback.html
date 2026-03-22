@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="container">
+
+  {% if is_correct %}
+    <h2 style="color:green;">✅ Correct!</h2>
+  {% else %}
+    <h2 style="color:red;">❌ Wrong</h2>
+    <p>Correct Answer: <b>{{ correct_answer }}</b></p>
+  {% endif %}
+
+  <button onclick="location.href='/student'">Next Question</button>
+
+</div>
+</body>
+</html>
