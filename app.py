@@ -2,6 +2,8 @@ from flask import Flask, render_template, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask import session
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret123'
@@ -70,33 +72,28 @@ def register():
     return render_template('register.html', instructors=instructors)
 
 # ---------------- LOGIN ----------------
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
 
-        user = User.query.filter_by(email=email).first()
+   @app.route('/login', methods=['GET', 'POST'])
+   def login():
+    try:
+        if request.method == 'POST':
+            user = User.query.filter_by(email=request.form['email']).first()
 
-        if user:
-            # STUDENT (no password)
-            if user.role == "student":
-                login_user(user)
-                return redirect('/student')
+            if user:
+                if user.role == "student":
+                    login_user(user)
+                    return redirect('/student')
 
-            # INSTRUCTOR / ADMIN
-            if user.password == password:
-                login_user(user)
+                if user.password == request.form['password']:
+                    login_user(user)
+                    return redirect(f"/{user.role}")
 
-                if user.role == "instructor":
-                    return redirect('/instructor')
-                elif user.role == "admin":
-                    return redirect('/admin')
+            return "Invalid Login"
 
-        return "Invalid Login"
+        return render_template('login.html')
 
-    return render_template('login.html')
-
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 # ---------------- INSTRUCTOR ----------------
@@ -159,10 +156,16 @@ def logout():
     return redirect('/login')
 
 # ---------------- RUN ----------------
-if __name__ == '__main__':
+   
+if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print("DB Error:", e)
 
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
         # CREATE DEFAULT ADMIN
         if not User.query.filter_by(email="admin@gmail.com").first():
             admin = User(name="Admin", email="admin@gmail.com", password="admin123", role="admin")
@@ -172,9 +175,7 @@ if __name__ == '__main__':
             db.session.add(instructor)
             db.session.commit()
 
-    if __name__ == "__main__":
-         app.run()
-
+   
 
 
 @app.route('/add_question', methods=['GET', 'POST'])
