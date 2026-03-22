@@ -3,13 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import os
 import csv
-
 import logging
+
+# ---------------- APP SETUP ----------------
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
+
 app.config['SECRET_KEY'] = 'secret123'
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -44,11 +47,27 @@ class Result(db.Model):
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+# ---------------- DB INIT (CRITICAL FOR RENDER) ----------------
+with app.app_context():
+    try:
+        db.create_all()
+        print("✅ Tables created")
+
+        if not User.query.filter_by(email="admin@gmail.com").first():
+            db.session.add(User(name="Admin", email="admin@gmail.com", password="admin123", role="admin"))
+            db.session.add(User(name="Instructor", email="inst@gmail.com", password="inst123", role="instructor"))
+            db.session.commit()
+            print("✅ Default users created")
+
+    except Exception as e:
+        print("❌ DB ERROR:", e)
+
 # ---------------- ROUTES ----------------
 @app.route('/')
 def home():
     return redirect('/login')
 
+# REGISTER (STUDENT)
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     instructors = User.query.filter_by(role="instructor").all()
@@ -67,7 +86,7 @@ def register():
 
     return render_template('register.html', instructors=instructors)
 
-# LOGIN (no password for students)
+# LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
@@ -78,12 +97,14 @@ def login():
             user = User.query.filter_by(email=email).first()
 
             if user:
+                # STUDENT LOGIN (NO PASSWORD)
                 if user.role == "student":
                     if name and user.name.lower() == name.lower():
                         login_user(user)
                         return redirect('/student')
                     return "Invalid Name"
 
+                # ADMIN / INSTRUCTOR LOGIN
                 if user.password == request.form['password']:
                     login_user(user)
                     return redirect(f"/{user.role}")
@@ -96,7 +117,7 @@ def login():
         app.logger.error(f"LOGIN ERROR: {str(e)}")
         return f"Error: {str(e)}"
 
-# INSTRUCTOR (only their students)
+# INSTRUCTOR DASHBOARD
 @app.route('/instructor')
 @login_required
 def instructor():
@@ -110,7 +131,7 @@ def instructor():
 
     return render_template('instructor.html', students=students)
 
-# ADMIN
+# ADMIN DASHBOARD
 @app.route('/admin')
 @login_required
 def admin():
@@ -127,7 +148,7 @@ def admin():
         results=results
     )
 
-# EXPORT CSV
+# EXPORT RESULTS CSV
 @app.route('/export_results')
 @login_required
 def export_results():
@@ -164,12 +185,4 @@ def logout():
     logout_user()
     return redirect('/login')
 
-# ---------------- RUN ----------------
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-
-        if not User.query.filter_by(email="admin@gmail.com").first():
-            db.session.add(User(name="Admin", email="admin@gmail.com", password="admin123", role="admin"))
-            db.session.add(User(name="Instructor", email="inst@gmail.com", password="inst123", role="instructor"))
-            db.session.commit()
+# ---------------- RUN (NO app.run for Render) ----------------
