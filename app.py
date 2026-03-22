@@ -4,7 +4,11 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import os
 import csv
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
 app.config['SECRET_KEY'] = 'secret123'
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
