@@ -181,7 +181,7 @@ if __name__ == '__main__':
             db.session.commit()
 
     if __name__ == "__main__":
-    app.run()
+         app.run()
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
