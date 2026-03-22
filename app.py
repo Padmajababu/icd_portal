@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask import session
+import os 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -72,9 +73,8 @@ def register():
     return render_template('register.html', instructors=instructors)
 
 # ---------------- LOGIN ----------------
-
-   @app.route('/login', methods=['GET', 'POST'])
-   def login():
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     try:
         if request.method == 'POST':
             user = User.query.filter_by(email=request.form['email']).first()
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
         # CREATE DEFAULT ADMIN
-        if not User.query.filter_by(email="admin@gmail.com").first():
+if not User.query.filter_by(email="admin@gmail.com").first():
             admin = User(name="Admin", email="admin@gmail.com", password="admin123", role="admin")
             instructor = User(name="Instructor", email="inst@gmail.com", password="inst123", role="instructor")
 
