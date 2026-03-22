@@ -70,26 +70,31 @@ def register():
 # LOGIN (no password for students)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        name = request.form.get('name')
+    try:
+        if request.method == 'POST':
+            email = request.form['email']
+            name = request.form.get('name')
 
-        user = User.query.filter_by(email=email).first()
+            user = User.query.filter_by(email=email).first()
 
-        if user:
-            if user.role == "student":
-                if user.name.lower() == name.lower():
+            if user:
+                if user.role == "student":
+                    if name and user.name.lower() == name.lower():
+                        login_user(user)
+                        return redirect('/student')
+                    return "Invalid Name"
+
+                if user.password == request.form['password']:
                     login_user(user)
-                    return redirect('/student')
-                return "Invalid Name"
+                    return redirect(f"/{user.role}")
 
-            if user.password == request.form['password']:
-                login_user(user)
-                return redirect(f"/{user.role}")
+            return "Invalid Login"
 
-        return "Invalid Login"
+        return render_template('login.html')
 
-    return render_template('login.html')
+    except Exception as e:
+        app.logger.error(f"LOGIN ERROR: {str(e)}")
+        return f"Error: {str(e)}"
 
 # INSTRUCTOR (only their students)
 @app.route('/instructor')
