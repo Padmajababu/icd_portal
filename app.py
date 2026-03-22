@@ -97,15 +97,7 @@ def login():
 
     return render_template('login.html')
 
-# ---------------- STUDENT ----------------
-@app.route('/student')
-@login_required
-def student():
-    if current_user.role != "student":
-        return "Access Denied"
-  
-    questions = question.query.all()
-    return render_template('student.html' , questions=questions)
+
 
 # ---------------- INSTRUCTOR ----------------
 @app.route('/instructor')
@@ -278,21 +270,6 @@ def student():
         )
 
     return render_template('student.html', question=current_q)
-# ---------------- INSTRUCTOR ----------------
-
-
-@app.route('/instructor')
-@login_required
-def instructor():
-    if current_user.role != "instructor":
-        return "Access Denied"
-
-    students = User.query.filter_by(
-        role="student",
-        instructor_id=current_user.id
-    ).all()
-
-    return render_template('instructor.html', students=students)
 
 # ---------------- PROGRESS----------------
 
