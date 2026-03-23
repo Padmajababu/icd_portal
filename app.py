@@ -91,25 +91,32 @@ def register():
 def login():
     try:
         if request.method == 'POST':
-            email = request.form['email']
+            email = request.form.get('email')
             name = request.form.get('name')
+            password = request.form.get('password')
 
             user = User.query.filter_by(email=email).first()
 
-            if user:
-                # STUDENT LOGIN (NO PASSWORD)
-                if user.role == "student":
-                    if name and user.name.lower() == name.lower():
-                        login_user(user)
-                        return redirect('/student')
-                    return "Invalid Name"
+            if not user:
+                return "User not found"
 
-                # ADMIN / INSTRUCTOR LOGIN
-                if user.password == request.form['password']:
+            # ✅ STUDENT LOGIN
+            if user.role == "student":
+                if not name:
+                    return "Please enter your name"
+
+                if user.name.strip().lower() == name.strip().lower():
                     login_user(user)
-                    return redirect(f"/{user.role}")
+                    return redirect('/student')
 
-            return "Invalid Login"
+                return "Invalid Name"
+
+            # ✅ ADMIN / INSTRUCTOR LOGIN
+            if password and user.password == password:
+                login_user(user)
+                return redirect(f"/{user.role}")
+
+            return "Invalid Password"
 
         return render_template('login.html')
 
@@ -147,6 +154,14 @@ def admin():
         questions=questions,
         results=results
     )
+# STUDENT DASHBOARD
+@app.route('/student')
+@login_required
+def student():
+    if current_user.role != "student":
+        return "Access Denied"
+
+    return "Student Dashboard"
 
 # EXPORT RESULTS CSV
 @app.route('/export_results')
