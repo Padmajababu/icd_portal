@@ -201,3 +201,22 @@ def logout():
     return redirect('/login')
 
 # ---------------- RUN (NO app.run for Render) ----------------
+
+
+#--------ADD QUESTION---------------
+@app.route('/add_question', methods=['GET', 'POST'])
+@login_required
+def add_question():
+    if current_user.role != "admin":
+        return "Access Denied"
+
+    if request.method == 'POST':
+        q = Question(
+            question=request.form['question'],
+            answer=request.form['answer']
+        )
+        db.session.add(q)
+        db.session.commit()
+        return redirect('/admin')
+
+    return render_template('add_question.html')
