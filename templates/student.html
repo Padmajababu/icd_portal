@@ -2,21 +2,28 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-<div class="container">
-  <h2>ICD Case Practice</h2>
 
-  <p><b>{{ question.question }}</b></p>
+<h2>ICD Question</h2>
 
-  <form method="POST">
-    <input type="text" name="answer" placeholder="Enter ICD Code">
-    <button type="submit">Submit</button>
-  </form>
+<p>{{ question.question }}</p>
 
-  <button onclick="location.href='/logout'">Logout</button>
-</div>
+<form method="POST">
+  <input type="text" name="answer" placeholder="Enter ICD Code" required>
+  <button type="submit">Submit</button>
+</form>
+
+<!-- WRONG ANSWER -->
+{% if error %}
+  <p style="color:red;">{{ error }}</p>
+  <p style="color:green;">Correct Answer: {{ correct }}</p>
+<script>
+alert("Wrong! Correct Answer: {{ correct }}");
+</script>
+{% endif %}
+{% endif %}
+
 </body>
 </html>
