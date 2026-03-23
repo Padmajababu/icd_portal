@@ -201,29 +201,24 @@ def logout():
 @app.route('/add_question', methods=['GET', 'POST'])
 @login_required
 def add_question():
-    if current_user.role != "admin":
-        return "Access Denied"
+    try:
+        if current_user.role != "admin":
+            return "Access Denied"
 
-    if request.method == 'POST':
-        question = request.form.get('question')
-        answer = request.form.get('answer')
+        if request.method == 'POST':
+            question = request.form.get('question')
+            answer = request.form.get('answer')
 
-        # ✅ validation
-        if not question or not answer:
-            return "Please fill all fields"
+            new_q = Question(question=question, answer=answer)
+            db.session.add(new_q)
+            db.session.commit()
 
-        new_q = Question(
-            question=question.strip(),
-            answer=answer.strip()
-        )
+            return redirect('/admin')
 
-        db.session.add(new_q)
-        db.session.commit()
+        return render_template('add_question.html')
 
-        return redirect('/admin')
-
-    return render_template('add_question.html')
-
+    except Exception as e:
+        return f"ERROR: {str(e)}"
 
  #------------STUDENT QUIZ--------
 @app.route('/student', methods=['GET', 'POST'])
@@ -257,13 +252,22 @@ def student():
     current_q = questions[index]
 
     if request.method == 'POST':
-        user_answer = request.form.get('answer').strip().lower()
-        correct_answer = current_q.answer.strip().lower()
+       user_answer = request.form.get('answer')
 
-        is_correct = user_answer == correct_answer
+    if not user_answer:
+        return render_template(
+        'student.html',
+        question=current_q,
+        error="Please enter an answer"
+    )
+
+    user_answer = user_answer.strip().lower()   
+    correct_answer = current_q.answer.strip().lower()
+
+    is_correct = user_answer == correct_answer
 
         # ✅ SAVE RESULT
-        result = Result(
+    result = Result(
             student_id=current_user.id,
             question_id=current_q.id,
             selected_answer=user_answer,
@@ -271,14 +275,14 @@ def student():
             is_correct=is_correct,
             attempt=1
         )
-        db.session.add(result)
+    db.session.add(result)
 
-        if is_correct:
+    if is_correct:
             session['score'] += 1
             session['q_index'] += 1
             db.session.commit()
             return redirect('/student')
-        else:
+    else:
             db.session.commit()
             return render_template(
                 'student.html',
