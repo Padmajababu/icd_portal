@@ -156,14 +156,6 @@ def admin():
         questions=questions,
         results=results
     )
-# STUDENT DASHBOARD
-@app.route('/student')
-@login_required
-def student():
-    if current_user.role != "student":
-        return "Access Denied"
-
-    return "Student Dashboard"
 
 # EXPORT RESULTS CSV
 @app.route('/export_results')
