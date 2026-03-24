@@ -252,20 +252,46 @@ def student():
     current_q = questions[index]
 
     if request.method == 'POST':
-       user_answer = request.form.get('answer')
+    user_answer = request.form.get('answer')
 
     if not user_answer:
         return render_template(
-        'student.html',
-        question=current_q,
-        error="Please enter an answer"
-    )
+            'student.html',
+            question=current_q,
+            error="Please enter an answer"
+        )
 
-    user_answer = user_answer.strip().lower()   
+    user_answer = user_answer.strip().lower()
     correct_answer = current_q.answer.strip().lower()
 
     is_correct = user_answer == correct_answer
 
+    result = Result(
+        student_id=current_user.id,
+        question_id=current_q.id,
+        selected_answer=user_answer,
+        correct_answer=current_q.answer,
+        is_correct=is_correct,
+        attempt=1
+    )
+    db.session.add(result)
+
+    if is_correct:
+        session['score'] += 1
+        session['q_index'] += 1
+        db.session.commit()
+        return redirect('/student')
+    else:
+        db.session.commit()
+        return render_template(
+            'student.html',
+            question=current_q,
+            error="Wrong answer!",
+            correct=current_q.answer
+        )
+
+  # ✅ THIS must be outside POST
+    return render_template('student.html', question=current_q)
         # ✅ SAVE RESULT
     result = Result(
             student_id=current_user.id,
