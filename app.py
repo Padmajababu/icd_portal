@@ -190,8 +190,32 @@ def admin():
     questions = Question.query.all()
     results = Result.query.all()
 
+    # ✅ Stats
+    total_students = User.query.filter_by(role="student").count()
+    total_instructors = User.query.filter_by(role="instructor").count()
+    total_questions = len(questions)
+    total_attempts = len(results)
+
+    # ✅ Avg score
+    correct = sum(1 for r in results if r.is_correct)
+    avg_score = round((correct / total_attempts) * 100, 2) if total_attempts > 0 else 0
+
+    # ✅ Instructor mapping
+    instructor_map = {
+        u.id: u.name for u in User.query.filter_by(role="instructor").all()
+    }
+
     return render_template(
-        "admin.html", users=users, questions=questions, results=results
+        "admin.html",
+        users=users,
+        questions=questions,
+        results=results,
+        total_students=total_students,
+        total_instructors=total_instructors,
+        total_questions=total_questions,
+        total_attempts=total_attempts,
+        avg_score=avg_score,
+        instructors=instructor_map,
     )
 
 
@@ -270,24 +294,18 @@ def student():
 
     questions = Question.query.all()
 
-    # ✅ Track question index
     if "q_index" not in session:
         session["q_index"] = 0
 
-    # ✅ Track score
     if "score" not in session:
         session["score"] = 0
 
     index = session["q_index"]
 
-    # ✅ Quiz finished
     if index >= len(questions):
         final_score = session.get("score", 0)
-
-        # reset session
         session.pop("q_index", None)
         session.pop("score", None)
-
         return f"Quiz Completed 🎉 Your Score: {final_score}/{len(questions)}"
 
     current_q = questions[index]
@@ -300,10 +318,36 @@ def student():
                 "student.html", question=current_q, error="Please enter an answer"
             )
 
-    user_answer = user_answer.strip().lower()
-    correct_answer = current_q.answer.strip().lower()
+        user_answer = user_answer.strip().lower()
+        correct_answer = current_q.answer.strip().lower()
 
-    is_correct = user_answer == correct_answer
+        is_correct = user_answer == correct_answer
+
+        result = Result(
+            student_id=current_user.id,
+            question_id=current_q.id,
+            selected_answer=user_answer,
+            correct_answer=current_q.answer,
+            is_correct=is_correct,
+            attempt=1,
+        )
+        db.session.add(result)
+
+        if is_correct:
+            session["score"] += 1
+            session["q_index"] += 1
+            db.session.commit()
+            return redirect("/student")
+        else:
+            db.session.commit()
+            return render_template(
+                "student.html",
+                question=current_q,
+                error="Wrong answer!",
+                correct=current_q.answer,
+            )
+
+    return render_template("student.html", question=current_q)
 
     # SAVE RESULT
     result = Result(
