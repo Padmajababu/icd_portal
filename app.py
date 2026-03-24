@@ -73,18 +73,25 @@ def register():
     instructors = User.query.filter_by(role="instructor").all()
 
     if request.method == 'POST':
-        user = User(
-            name=request.form['name'],
-            email=request.form['email'],
-            password="",
-            role="student",
-            instructor_id=int(request.form['instructor'])
-        )
-        db.session.add(user)
-        db.session.commit()
-        return redirect('/login')
+     name = request.form.get('name')
+    email = request.form.get('email')
+    instructor_id = request.form.get('instructor')
 
-    return render_template('register.html', instructors=instructors)
+    if not name or not email or not instructor_id:
+        return "All fields are required"
+
+    user = User(
+        name=name,
+        email=email,
+        password="",
+        role="student",
+        instructor_id=int(instructor_id)
+    )
+
+    db.session.add(user)
+    db.session.commit()
+
+    return redirect('/login')
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
@@ -318,3 +325,35 @@ def student():
             )
 
     return render_template('student.html', question=current_q)
+
+@app.route('/add_instructor', methods=['GET', 'POST'])
+@login_required
+def add_instructor():
+    if current_user.role != "admin":
+        return "Access Denied"
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not name or not email or not password:
+            return "All fields required"
+
+        # check if instructor already exists
+        if User.query.filter_by(email=email).first():
+            return "Email already exists"
+
+        new_instructor = User(
+            name=name,
+            email=email,
+            password=password,
+            role="instructor"
+        )
+
+        db.session.add(new_instructor)
+        db.session.commit()
+
+        return redirect('/admin')
+
+    return render_template('add_instructor.html')
