@@ -329,6 +329,7 @@ def student():
 @app.route('/add_instructor', methods=['GET', 'POST'])
 @login_required
 def add_instructor():
+
     if current_user.role != "admin":
         return "Access Denied"
 
@@ -340,20 +341,16 @@ def add_instructor():
         if not name or not email or not password:
             return "All fields required"
 
-        # check if instructor already exists
-        if User.query.filter_by(email=email).first():
-            return "Email already exists"
-
-        new_instructor = User(
+        instructor = User(
             name=name,
             email=email,
             password=password,
             role="instructor"
         )
 
-        db.session.add(new_instructor)
+        db.session.add(instructor)
         db.session.commit()
 
-        return redirect('/admin')
+        return "Instructor Added Successfully"
 
     return render_template('add_instructor.html')
