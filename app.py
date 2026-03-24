@@ -291,9 +291,6 @@ def student():
             correct=current_q.answer
         )
 
-
-
-  # ✅ THIS must be outside POST
     return render_template('student.html', question=current_q)
         # ✅ SAVE RESULT
     result = Result(
