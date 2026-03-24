@@ -1,6 +1,13 @@
 from flask import Flask, render_template, redirect, request, session, Response
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    login_required,
+    logout_user,
+    current_user,
+)
 import os
 import csv
 import logging
@@ -11,14 +18,17 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 
-app.config['SECRET_KEY'] = 'secret123'
+app.config["SECRET_KEY"] = "secret123"
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
+    basedir, "database.db"
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
+
 
 # ---------------- MODELS ----------------
 class User(UserMixin, db.Model):
@@ -29,10 +39,12 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20))
     instructor_id = db.Column(db.Integer)
 
+
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.String(500))
     answer = db.Column(db.String(100))
+
 
 class Result(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,9 +55,11 @@ class Result(db.Model):
     is_correct = db.Column(db.Boolean)
     attempt = db.Column(db.Integer)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
+
 
 # ---------------- DB INIT (CRITICAL FOR RENDER) ----------------
 with app.app_context():
@@ -54,28 +68,44 @@ with app.app_context():
         print("✅ Tables created")
 
         if not User.query.filter_by(email="admin@gmail.com").first():
-            db.session.add(User(name="Admin", email="admin@gmail.com", password="admin123", role="admin"))
-            db.session.add(User(name="Instructor", email="inst@gmail.com", password="inst123", role="instructor"))
+            db.session.add(
+                User(
+                    name="Admin",
+                    email="admin@gmail.com",
+                    password="admin123",
+                    role="admin",
+                )
+            )
+            db.session.add(
+                User(
+                    name="Instructor",
+                    email="inst@gmail.com",
+                    password="inst123",
+                    role="instructor",
+                )
+            )
             db.session.commit()
             print("✅ Default users created")
 
     except Exception as e:
         print("❌ DB ERROR:", e)
 
+
 # ---------------- ROUTES ----------------
-@app.route('/')
+@app.route("/")
 def home():
-    return redirect('/login')
+    return redirect("/login")
+
 
 # REGISTER (STUDENT)
-@app.route('/register', methods=['GET', 'POST'])
+@app.route("/register", methods=["GET", "POST"])
 def register():
     instructors = User.query.filter_by(role="instructor").all()
 
-    if request.method == 'POST':
-     name = request.form.get('name')
-    email = request.form.get('email')
-    instructor_id = request.form.get('instructor')
+    if request.method == "POST":
+        name = request.form.get("name")
+    email = request.form.get("email")
+    instructor_id = request.form.get("instructor")
 
     if not name or not email or not instructor_id:
         return "All fields are required"
@@ -85,22 +115,23 @@ def register():
         email=email,
         password="",
         role="student",
-        instructor_id=int(instructor_id)
+        instructor_id=int(instructor_id),
     )
 
     db.session.add(user)
     db.session.commit()
 
-    return redirect('/login')
+    return redirect("/login")
+
 
 # LOGIN
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     try:
-        if request.method == 'POST':
-            email = request.form.get('email')
-            name = request.form.get('name')
-            password = request.form.get('password')
+        if request.method == "POST":
+            email = request.form.get("email")
+            name = request.form.get("name")
+            password = request.form.get("password")
 
             user = User.query.filter_by(email=email).first()
 
@@ -115,8 +146,8 @@ def login():
                 if user.name.strip().lower() == name.strip().lower():
                     login_user(user)
 
-                    session['q_index'] = 0
-                    return redirect('/student')
+                    session["q_index"] = 0
+                    return redirect("/student")
 
                 return "Invalid Name"
 
@@ -127,28 +158,27 @@ def login():
 
             return "Invalid Password"
 
-        return render_template('login.html')
+        return render_template("login.html")
 
     except Exception as e:
         app.logger.error(f"LOGIN ERROR: {str(e)}")
         return f"Error: {str(e)}"
 
+
 # INSTRUCTOR DASHBOARD
-@app.route('/instructor')
+@app.route("/instructor")
 @login_required
 def instructor():
     if current_user.role != "instructor":
         return "Access Denied"
 
-    students = User.query.filter_by(
-        role="student",
-        instructor_id=current_user.id
-    ).all()
+    students = User.query.filter_by(role="student", instructor_id=current_user.id).all()
 
-    return render_template('instructor.html', students=students)
+    return render_template("instructor.html", students=students)
+
 
 # ADMIN DASHBOARD
-@app.route('/admin')
+@app.route("/admin")
 @login_required
 def admin():
     if current_user.role != "admin":
@@ -158,14 +188,13 @@ def admin():
     questions = Question.query.all()
     results = Result.query.all()
 
-    return render_template('admin.html',
-        users=users,
-        questions=questions,
-        results=results
+    return render_template(
+        "admin.html", users=users, questions=questions, results=results
     )
 
+
 # EXPORT RESULTS CSV
-@app.route('/export_results')
+@app.route("/export_results")
 @login_required
 def export_results():
     if current_user.role not in ["admin", "instructor"]:
@@ -175,8 +204,7 @@ def export_results():
         results = Result.query.all()
     else:
         students = User.query.filter_by(
-            role="student",
-            instructor_id=current_user.id
+            role="student", instructor_id=current_user.id
         ).all()
         student_ids = [s.id for s in students]
         results = Result.query.filter(Result.student_id.in_(student_ids)).all()
@@ -189,46 +217,50 @@ def export_results():
 
             yield f"{student.name},{question.question},{r.selected_answer},{r.correct_answer},{r.is_correct},{r.attempt}\n"
 
-    return Response(generate(),
+    return Response(
+        generate(),
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachment;filename=results.csv"}
+        headers={"Content-Disposition": "attachment;filename=results.csv"},
     )
 
+
 # LOGOUT
-@app.route('/logout')
+@app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect('/login')
+    return redirect("/login")
+
 
 # ---------------- RUN (NO app.run for Render) ----------------
 
 
-#--------ADD QUESTION---------------
-@app.route('/add_question', methods=['GET', 'POST'])
+# --------ADD QUESTION---------------
+@app.route("/add_question", methods=["GET", "POST"])
 @login_required
 def add_question():
     try:
         if current_user.role != "admin":
             return "Access Denied"
 
-        if request.method == 'POST':
-            question = request.form.get('question')
-            answer = request.form.get('answer')
+        if request.method == "POST":
+            question = request.form.get("question")
+            answer = request.form.get("answer")
 
             new_q = Question(question=question, answer=answer)
             db.session.add(new_q)
             db.session.commit()
 
-            return redirect('/admin')
+            return redirect("/admin")
 
-        return render_template('add_question.html')
+        return render_template("add_question.html")
 
     except Exception as e:
         return f"ERROR: {str(e)}"
 
- #------------STUDENT QUIZ--------
-@app.route('/student', methods=['GET', 'POST'])
+
+# ------------STUDENT QUIZ--------
+@app.route("/student", methods=["GET", "POST"])
 @login_required
 def student():
     if current_user.role != "student":
@@ -237,36 +269,34 @@ def student():
     questions = Question.query.all()
 
     # ✅ Track question index
-    if 'q_index' not in session:
-        session['q_index'] = 0
+    if "q_index" not in session:
+        session["q_index"] = 0
 
     # ✅ Track score
-    if 'score' not in session:
-        session['score'] = 0
+    if "score" not in session:
+        session["score"] = 0
 
-    index = session['q_index']
+    index = session["q_index"]
 
     # ✅ Quiz finished
     if index >= len(questions):
-        final_score = session.get('score', 0)
+        final_score = session.get("score", 0)
 
         # reset session
-        session.pop('q_index', None)
-        session.pop('score', None)
+        session.pop("q_index", None)
+        session.pop("score", None)
 
         return f"Quiz Completed 🎉 Your Score: {final_score}/{len(questions)}"
 
     current_q = questions[index]
 
-    if request.method == 'POST':
-      user_answer = request.form.get('answer')
+    if request.method == "POST":
+        user_answer = request.form.get("answer")
 
-      if not user_answer:
-         return render_template(
-            'student.html',
-            question=current_q,
-            error="Please enter an answer"
-        )
+        if not user_answer:
+            return render_template(
+                "student.html", question=current_q, error="Please enter an answer"
+            )
 
     user_answer = user_answer.strip().lower()
     correct_answer = current_q.answer.strip().lower()
@@ -280,77 +310,73 @@ def student():
         selected_answer=user_answer,
         correct_answer=current_q.answer,
         is_correct=is_correct,
-        attempt=1
+        attempt=1,
     )
     db.session.add(result)
 
     if is_correct:
-        session['score'] += 1
-        session['q_index'] += 1
+        session["score"] += 1
+        session["q_index"] += 1
         db.session.commit()
-        return redirect('/student')
+        return redirect("/student")
     else:
         db.session.commit()
         return render_template(
-            'student.html',
+            "student.html",
             question=current_q,
             error="Wrong answer!",
-            correct=current_q.answer
+            correct=current_q.answer,
         )
 
-    return render_template('student.html', question=current_q)
-        # ✅ SAVE RESULT
+    return render_template("student.html", question=current_q)
+    # ✅ SAVE RESULT
     result = Result(
-            student_id=current_user.id,
-            question_id=current_q.id,
-            selected_answer=user_answer,
-            correct_answer=current_q.answer,
-            is_correct=is_correct,
-            attempt=1
-        )
+        student_id=current_user.id,
+        question_id=current_q.id,
+        selected_answer=user_answer,
+        correct_answer=current_q.answer,
+        is_correct=is_correct,
+        attempt=1,
+    )
     db.session.add(result)
 
     if is_correct:
-            session['score'] += 1
-            session['q_index'] += 1
-            db.session.commit()
-            return redirect('/student')
+        session["score"] += 1
+        session["q_index"] += 1
+        db.session.commit()
+        return redirect("/student")
     else:
-            db.session.commit()
-            return render_template(
-                'student.html',
-                question=current_q,
-                error="Wrong answer!",
-                correct=current_q.answer
-            )
+        db.session.commit()
+        return render_template(
+            "student.html",
+            question=current_q,
+            error="Wrong answer!",
+            correct=current_q.answer,
+        )
 
-    return render_template('student.html', question=current_q)
+    return render_template("student.html", question=current_q)
 
-@app.route('/add_instructor', methods=['GET', 'POST'])
+
+@app.route("/add_instructor", methods=["GET", "POST"])
 @login_required
 def add_instructor():
 
     if current_user.role != "admin":
         return "Access Denied"
 
-    if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        password = request.form.get("password")
 
         if not name or not email or not password:
             return "All fields required"
 
-        instructor = User(
-            name=name,
-            email=email,
-            password=password,
-            role="instructor"
-        )
+        instructor = User(name=name, email=email, password=password, role="instructor")
 
         db.session.add(instructor)
         db.session.commit()
 
         return "Instructor Added Successfully"
 
-    return render_template('add_instructor.html')
+    return render_template("add_instructor.html")
