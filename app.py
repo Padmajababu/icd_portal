@@ -358,7 +358,8 @@ def student():
 
     return render_template("student.html", question=current_q)
 
-#------------------ADD INSTRUCTOR----------------
+
+# ------------------ADD INSTRUCTOR----------------
 @app.route("/add_instructor", methods=["GET", "POST"])
 @login_required
 def add_instructor():
@@ -379,6 +380,10 @@ def add_instructor():
         db.session.add(instructor)
         db.session.commit()
 
-        return "Instructor Added Successfully"
+        return redirect("/admin")  # better than plain text
 
     return render_template("add_instructor.html")
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
