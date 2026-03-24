@@ -252,10 +252,10 @@ def student():
     current_q = questions[index]
 
     if request.method == 'POST':
-    user_answer = request.form.get('answer')
+      user_answer = request.form.get('answer')
 
-    if not user_answer:
-        return render_template(
+      if not user_answer:
+         return render_template(
             'student.html',
             question=current_q,
             error="Please enter an answer"
@@ -266,6 +266,7 @@ def student():
 
     is_correct = user_answer == correct_answer
 
+    # SAVE RESULT
     result = Result(
         student_id=current_user.id,
         question_id=current_q.id,
@@ -289,6 +290,8 @@ def student():
             error="Wrong answer!",
             correct=current_q.answer
         )
+
+
 
   # ✅ THIS must be outside POST
     return render_template('student.html', question=current_q)
