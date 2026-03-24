@@ -104,24 +104,26 @@ def register():
 
     if request.method == "POST":
         name = request.form.get("name")
-    email = request.form.get("email")
-    instructor_id = request.form.get("instructor")
+        email = request.form.get("email")
+        instructor_id = request.form.get("instructor")
 
-    if not name or not email or not instructor_id:
-        return "All fields are required"
+        if not name or not email or not instructor_id:
+            return "All fields are required"
 
-    user = User(
-        name=name,
-        email=email,
-        password="",
-        role="student",
-        instructor_id=int(instructor_id),
-    )
+        user = User(
+            name=name,
+            email=email,
+            password="",
+            role="student",
+            instructor_id=int(instructor_id),
+        )
 
-    db.session.add(user)
-    db.session.commit()
+        db.session.add(user)
+        db.session.commit()
 
-    return redirect("/login")
+        return redirect("/login")
+
+    return render_template("register.html", instructors=instructors)
 
 
 # LOGIN
@@ -356,7 +358,7 @@ def student():
 
     return render_template("student.html", question=current_q)
 
-
+#------------------ADD INSTRUCTOR----------------
 @app.route("/add_instructor", methods=["GET", "POST"])
 @login_required
 def add_instructor():
