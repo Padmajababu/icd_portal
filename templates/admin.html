@@ -1,49 +1,55 @@
 <!DOCTYPE html>
 <html>
-<h3>📊 Dashboard Stats</h3>
 
-<div style="display:flex; flex-wrap:wrap; gap:15px;">
-
-  <div style="background:#e3f2fd; padding:15px; border-radius:10px;">
-    👩‍🎓 Students: {{ total_students }}
-  </div>
-
-  <div style="background:#e8f5e9; padding:15px; border-radius:10px;">
-    👨‍🏫 Instructors: {{ total_instructors }}
-  </div>
-
-  <div style="background:#fff3e0; padding:15px; border-radius:10px;">
-    ❓ Questions: {{ total_questions }}
-  </div>
-
-  <div style="background:#fce4ec; padding:15px; border-radius:10px;">
-    📝 Attempts: {{ total_attempts }}
-  </div>
-
-  <div style="background:#ede7f6; padding:15px; border-radius:10px;">
-    📈 Avg Score: {{ avg_score }}%
-  </div>
-
-</div>
-
-<hr>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+
 <div class="container">
 
   <h2>Admin Dashboard</h2>
+
+  <!-- DASHBOARD STATS -->
+  <h3>📊 Dashboard Stats</h3>
+
+  <div style="display:flex; flex-wrap:wrap; gap:15px;">
+
+    <div style="background:#e3f2fd; padding:15px; border-radius:10px;">
+      👩‍🎓 Students: {{ total_students }}
+    </div>
+
+    <div style="background:#e8f5e9; padding:15px; border-radius:10px;">
+      👨‍🏫 Instructors: {{ total_instructors }}
+    </div>
+
+    <div style="background:#fff3e0; padding:15px; border-radius:10px;">
+      ❓ Questions: {{ total_questions }}
+    </div>
+
+    <div style="background:#fce4ec; padding:15px; border-radius:10px;">
+      📝 Attempts: {{ total_attempts }}
+    </div>
+
+    <div style="background:#ede7f6; padding:15px; border-radius:10px;">
+      📈 Avg Score: {{ avg_score }}%
+    </div>
+
+  </div>
+
+  <hr>
 
   <!-- ACTION BUTTONS -->
   <button onclick="location.href='/add_instructor'">Add Instructor</button>
   <button onclick="location.href='/add_question'">Add Question</button>
   <button onclick="location.href='/logout'">Logout</button>
-<a href="/export_results">
+
+  <a href="/export_results">
     <button>Download Results CSV</button>
-</a>
+  </a>
 
   <hr>
 
@@ -87,5 +93,6 @@
   </ul>
 
 </div>
+
 </body>
 </html>

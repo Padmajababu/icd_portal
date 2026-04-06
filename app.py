@@ -103,6 +103,8 @@ def register():
     instructors = User.query.filter_by(role="instructor").all()
 
     if request.method == "POST":
+        print(request.form)
+
         name = request.form.get("name")
         email = request.form.get("email")
         instructor_id = request.form.get("instructor")
@@ -293,6 +295,10 @@ def student():
         return "Access Denied"
 
     questions = Question.query.all()
+    print("TOTAL QUESTIONS:", len(questions))
+
+    if len(questions) == 0:
+        return "⚠️ No questions available. Contact admin."
 
     if "q_index" not in session:
         session["q_index"] = 0
@@ -323,6 +329,7 @@ def student():
 
         is_correct = user_answer == correct_answer
 
+        # ✅ SAVE RESULT
         result = Result(
             student_id=current_user.id,
             question_id=current_q.id,
@@ -332,76 +339,35 @@ def student():
             attempt=1,
         )
         db.session.add(result)
+        db.session.commit()
 
+        # ✅ IF CORRECT → move next
         if is_correct:
             session["score"] += 1
             session["q_index"] += 1
-            db.session.commit()
             return redirect("/student")
+
+        # ❌ IF WRONG → show answer (no move yet)
         else:
-            db.session.commit()
             return render_template(
                 "student.html",
                 question=current_q,
                 error="Wrong answer!",
                 correct=current_q.answer,
+                show_next=True
             )
 
     return render_template("student.html", question=current_q)
 
-    # SAVE RESULT
-    result = Result(
-        student_id=current_user.id,
-        question_id=current_q.id,
-        selected_answer=user_answer,
-        correct_answer=current_q.answer,
-        is_correct=is_correct,
-        attempt=1,
-    )
-    db.session.add(result)
+#----------------NEXT QUESTION----------
+@app.route("/next_question")
+@login_required
+def next_question():
+    if current_user.role != "student":
+        return "Access Denied"
 
-    if is_correct:
-        session["score"] += 1
-        session["q_index"] += 1
-        db.session.commit()
-        return redirect("/student")
-    else:
-        db.session.commit()
-        return render_template(
-            "student.html",
-            question=current_q,
-            error="Wrong answer!",
-            correct=current_q.answer,
-        )
-
-    return render_template("student.html", question=current_q)
-    # ✅ SAVE RESULT
-    result = Result(
-        student_id=current_user.id,
-        question_id=current_q.id,
-        selected_answer=user_answer,
-        correct_answer=current_q.answer,
-        is_correct=is_correct,
-        attempt=1,
-    )
-    db.session.add(result)
-
-    if is_correct:
-        session["score"] += 1
-        session["q_index"] += 1
-        db.session.commit()
-        return redirect("/student")
-    else:
-        db.session.commit()
-        return render_template(
-            "student.html",
-            question=current_q,
-            error="Wrong answer!",
-            correct=current_q.answer,
-        )
-
-    return render_template("student.html", question=current_q)
-
+    session["q_index"] += 1
+    return redirect("/student")
 
 # ------------------ADD INSTRUCTOR----------------
 @app.route("/add_instructor", methods=["GET", "POST"])

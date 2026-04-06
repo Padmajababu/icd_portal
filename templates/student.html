@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Quiz</title>
 </head>
 
 <body>
@@ -11,18 +12,40 @@
 <p>{{ question.question }}</p>
 
 <form method="POST">
-  <input type="text" name="answer" placeholder="Enter ICD Code" required>
-  <button type="submit">Submit</button>
+
+  <input type="text"
+         name="answer"
+         placeholder="Enter ICD Code"
+         required
+         {% if show_next %} disabled {% endif %}>
+
+  <button type="submit"
+          {% if show_next %} disabled {% endif %}>
+    Submit
+  </button>
+
 </form>
 
-<!-- WRONG ANSWER -->
+<!-- ERROR MESSAGE -->
 {% if error %}
   <p style="color:red;">{{ error }}</p>
-  <p style="color:green;">Correct Answer: {{ correct }}</p>
-<script>
-alert("Wrong! Correct Answer: {{ correct }}");
-</script>
 {% endif %}
+
+<!-- CORRECT ANSWER -->
+{% if correct %}
+  <p style="color:green;">Correct Answer: {{ correct }}</p>
+
+  <script>
+    alert("Wrong! Correct Answer: {{ correct }}");
+  </script>
+{% endif %}
+
+<!-- NEXT BUTTON -->
+{% if show_next %}
+  <br><br>
+  <button onclick="location.href='/next_question'">
+    Next Question →
+  </button>
 {% endif %}
 
 </body>
