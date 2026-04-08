@@ -92,6 +92,43 @@
   {% endfor %}
   </ul>
 
+  <hr>
+
+  <!-- STUDENT ATTEMPTS -->
+  <h3>📊 Student Attempts</h3>
+
+  {% for user in users if user.role == 'student' %}
+
+    <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; border-radius:10px;">
+      
+      <strong style="font-size:18px;">{{ user.name }}</strong>
+
+      <!-- DOWNLOAD BUTTON -->
+      <br><br>
+      <a href="/export_student/{{ user.id }}">
+        <button>⬇ Download Report</button>
+      </a>
+
+      <br><br>
+
+      {% if student_scores.get(user.id, {}) %}
+        
+        {% for attempt, data in student_scores.get(user.id, {}).items() | sort %}
+          <p>
+            🧪 Attempt {{ attempt }} → 
+            Score: {{ data.score }}/{{ data.total }} 
+            ({{ ((data.score / data.total) * 100) | round(2) }}%)
+          </p>
+        {% endfor %}
+
+      {% else %}
+        <p>No attempts yet</p>
+      {% endif %}
+
+    </div>
+
+  {% endfor %}
+
 </div>
 
 </body>

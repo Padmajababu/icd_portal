@@ -150,7 +150,10 @@ def login():
                 if user.name.strip().lower() == name.strip().lower():
                     login_user(user)
 
-                    session["q_index"] = 0
+                    # 🔥 RESET SESSION FOR NEW QUIZ
+                    session.pop("q_index", None)
+                    session.pop("score", None)
+                    session.pop("attempt", None)
                     return redirect("/student")
 
                 return "Invalid Name"
@@ -192,6 +195,29 @@ def admin():
     questions = Question.query.all()
     results = Result.query.all()
 
+    from collections import defaultdict
+
+    # ✅ GROUP RESULTS
+    student_attempts = defaultdict(lambda: defaultdict(list))
+
+    for r in results:
+        student_attempts[r.student_id][r.attempt].append(r)
+
+    # ✅ CALCULATE SCORES (FIXED INDENTATION)
+    student_scores = {}
+
+    for student_id, attempts in student_attempts.items():
+        student_scores[student_id] = {}
+
+        for attempt_no, records in attempts.items():
+            total = len(records)
+            correct = sum(1 for r in records if r.is_correct)
+
+            student_scores[student_id][attempt_no] = {
+                "score": correct,
+                "total": total
+            }
+
     # ✅ Stats
     total_students = User.query.filter_by(role="student").count()
     total_instructors = User.query.filter_by(role="instructor").count()
@@ -212,6 +238,7 @@ def admin():
         users=users,
         questions=questions,
         results=results,
+        student_scores=student_scores,  # ✅ IMPORTANT
         total_students=total_students,
         total_instructors=total_instructors,
         total_questions=total_questions,
@@ -250,6 +277,52 @@ def export_results():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=results.csv"},
     )
+
+# EXPORT
+@app.route("/export_student/<int:student_id>")
+@login_required
+def export_student(student_id):
+
+    if current_user.role != "admin":
+        return "Access Denied"
+
+    import io
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Header
+    writer.writerow([
+        "Attempt",
+        "Question",
+        "Selected Answer",
+        "Correct Answer",
+        "Is Correct"
+    ])
+
+    results = Result.query.filter_by(student_id=student_id).order_by(Result.attempt).all()
+
+    for r in results:
+        question = db.session.get(Question, r.question_id)
+
+        writer.writerow([
+            r.attempt,
+            question.question,
+            r.selected_answer,
+            r.correct_answer,
+            r.is_correct
+        ])
+
+    output.seek(0)
+
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment;filename=student_{student_id}_results.csv"
+        },
+    )
+
+
 
 
 # LOGOUT
@@ -300,18 +373,34 @@ def student():
     if len(questions) == 0:
         return "⚠️ No questions available. Contact admin."
 
+    # ✅ Initialize session values
     if "q_index" not in session:
         session["q_index"] = 0
 
     if "score" not in session:
         session["score"] = 0
 
+    # ✅ FIXED ATTEMPT LOGIC
+    if "attempt" not in session:
+        last_attempt = (
+            Result.query.filter_by(student_id=current_user.id)
+            .order_by(Result.attempt.desc())
+            .first()
+        )
+
+        session["attempt"] = last_attempt.attempt + 1 if last_attempt else 1
+
     index = session["q_index"]
 
+    # ✅ QUIZ COMPLETE
     if index >= len(questions):
         final_score = session.get("score", 0)
+
+        # 🔥 CLEAR SESSION AFTER QUIZ
         session.pop("q_index", None)
         session.pop("score", None)
+        session.pop("attempt", None)
+
         return f"Quiz Completed 🎉 Your Score: {final_score}/{len(questions)}"
 
     current_q = questions[index]
@@ -321,7 +410,9 @@ def student():
 
         if not user_answer:
             return render_template(
-                "student.html", question=current_q, error="Please enter an answer"
+                "student.html",
+                question=current_q,
+                error="Please enter an answer"
             )
 
         user_answer = user_answer.strip().lower()
@@ -336,29 +427,26 @@ def student():
             selected_answer=user_answer,
             correct_answer=current_q.answer,
             is_correct=is_correct,
-            attempt=1,
+            attempt=session["attempt"],  # ✅ correct attempt used
         )
         db.session.add(result)
         db.session.commit()
 
-        # ✅ IF CORRECT → move next
         if is_correct:
             session["score"] += 1
             session["q_index"] += 1
             return redirect("/student")
 
-        # ❌ IF WRONG → show answer (no move yet)
         else:
             return render_template(
                 "student.html",
                 question=current_q,
                 error="Wrong answer!",
                 correct=current_q.answer,
-                show_next=True
+                show_next=True,
             )
 
     return render_template("student.html", question=current_q)
-
 #----------------NEXT QUESTION----------
 @app.route("/next_question")
 @login_required
