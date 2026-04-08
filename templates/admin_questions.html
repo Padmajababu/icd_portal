@@ -1,0 +1,20 @@
+<h2>Questions</h2>
+<a href="/admin">⬅ Back</a>
+<ul>
+{% for q in questions %}
+  <li>{{ q.question }} → {{ q.answer }}
+<!-- EDIT -->
+    <a href="/edit_question/{{ q.id }}">
+      <button>Edit</button>
+    </a>
+
+    <!-- DELETE -->
+    <a href="/delete_question/{{ q.id }}"
+       onclick="return confirm('Delete this question?')">
+      <button style="background:red;color:white;">Delete</button>
+    </a>
+
+
+</li>
+{% endfor %}
+</ul>

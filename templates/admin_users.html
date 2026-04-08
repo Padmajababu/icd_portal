@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Users</title>
+</head>
+
+<body style="font-family:Arial; padding:20px;">
+
+<h2>Users</h2>
+
+<a href="/admin">⬅ Back</a>
+
+<br><br>
+
+<!-- 🔍 SEARCH BAR -->
+<form method="GET" action="/admin/users">
+  <input 
+    type="text" 
+    name="search" 
+    placeholder="Search by name..." 
+    value="{{ search or '' }}"
+  >
+  <button type="submit">Search</button>
+
+  <a href="/admin/users">
+    <button type="button">Reset</button>
+  </a>
+</form>
+
+<hr>
+
+<ul>
+{% for user in users %}
+  <li style="margin-bottom:10px;">
+    
+    <strong>{{ user.name }}</strong> ({{ user.role }})
+
+    {% if user.role == 'student' %}
+      → Instructor: {{ instructors.get(user.instructor_id, 'None') }}
+
+      <!-- DELETE STUDENT -->
+      <a href="/delete_student/{{ user.id }}"
+         onclick="return confirm('Delete this student?')">
+        <button style="background:red;color:white;">Delete</button>
+      </a>
+    {% endif %}
+
+    {% if user.role == 'instructor' %}
+      <!-- EDIT -->
+      <a href="/edit_instructor/{{ user.id }}">
+        <button>Edit</button>
+      </a>
+
+      <!-- DELETE -->
+      <a href="/delete_instructor/{{ user.id }}"
+         onclick="return confirm('Delete instructor?')">
+        <button style="background:red;color:white;">Delete</button>
+      </a>
+    {% endif %}
+
+  </li>
+{% endfor %}
+</ul>
+
+{% if users|length == 0 %}
+  <p>No users found</p>
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+<h2>Results</h2>
+<a href="/admin">⬅ Back</a>
+<ul>
+{% for r in results %}
+  <li>
+    Student {{ r.student_id }} |
+    Q{{ r.question_id }} |
+    {{ r.selected_answer }} |
+    Correct: {{ r.correct_answer }}
+  </li>
+{% endfor %}
+</ul>

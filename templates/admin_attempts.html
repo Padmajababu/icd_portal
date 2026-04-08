@@ -1,0 +1,19 @@
+<h2>Student Attempts</h2>
+<a href="/admin">⬅ Back</a>
+
+{% for user in users %}
+  <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+    <strong>{{ user.name }}</strong>
+
+    {% if student_scores.get(user.id, {}) %}
+      {% for attempt, data in student_scores.get(user.id, {}).items() | sort %}
+        <p>
+          Attempt {{ attempt }} →
+          {{ data.score }}/{{ data.total }}
+        </p>
+      {% endfor %}
+    {% else %}
+      <p>No attempts</p>
+    {% endif %}
+  </div>
+{% endfor %}

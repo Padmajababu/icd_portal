@@ -4,16 +4,15 @@
 <head>
   <title>Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
 
-<div class="container">
+<div style="padding:20px; font-family:Arial;">
 
   <h2>Admin Dashboard</h2>
 
-  <!-- DASHBOARD STATS -->
+  <!-- STATS -->
   <h3>📊 Dashboard Stats</h3>
 
   <div style="display:flex; flex-wrap:wrap; gap:15px;">
@@ -42,92 +41,30 @@
 
   <hr>
 
-  <!-- ACTION BUTTONS -->
+  <!-- ACTIONS -->
+  <h3>⚙️ Actions</h3>
+
   <button onclick="location.href='/add_instructor'">Add Instructor</button>
   <button onclick="location.href='/add_question'">Add Question</button>
+  <button onclick="location.href='/export_results'">Download Results</button>
   <button onclick="location.href='/logout'">Logout</button>
 
-  <a href="/export_results">
-    <button>Download Results CSV</button>
-  </a>
-
   <hr>
 
-  <!-- USERS -->
-  <h3>Users</h3>
-  <ul>
-  {% for user in users %}
-    <li>
-      {{ user.name }} ({{ user.role }})
+  <!-- NAVIGATION -->
+  <h3>📂 Manage Sections</h3>
 
-      {% if user.role == 'student' %}
-        → Instructor: {{ instructors.get(user.instructor_id, 'None') }}
-      {% endif %}
-    </li>
-  {% endfor %}
-  </ul>
+  <div style="display:flex; gap:20px; flex-wrap:wrap;">
 
-  <hr>
+    <button onclick="location.href='/admin/users'">👥 Users</button>
 
-  <!-- QUESTIONS -->
-  <h3>Questions</h3>
-  <ul>
-  {% for q in questions %}
-    <li>{{ q.question }} → {{ q.answer }}</li>
-  {% endfor %}
-  </ul>
+    <button onclick="location.href='/admin/questions'">❓ Questions</button>
 
-  <hr>
+    <button onclick="location.href='/admin/results'">📊 Results</button>
 
-  <!-- RESULTS -->
-  <h3>Results</h3>
-  <ul>
-  {% for r in results %}
-    <li>
-      Student ID: {{ r.student_id }} |
-      Q{{ r.question_id }} |
-      Answer: {{ r.selected_answer }} |
-      Correct: {{ r.correct_answer }}
-    </li>
-  {% endfor %}
-  </ul>
+    <button onclick="location.href='/admin/attempts'">🧪 Student Attempts</button>
 
-  <hr>
-
-  <!-- STUDENT ATTEMPTS -->
-  <h3>📊 Student Attempts</h3>
-
-  {% for user in users if user.role == 'student' %}
-
-    <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; border-radius:10px;">
-      
-      <strong style="font-size:18px;">{{ user.name }}</strong>
-
-      <!-- DOWNLOAD BUTTON -->
-      <br><br>
-      <a href="/export_student/{{ user.id }}">
-        <button>⬇ Download Report</button>
-      </a>
-
-      <br><br>
-
-      {% if student_scores.get(user.id, {}) %}
-        
-        {% for attempt, data in student_scores.get(user.id, {}).items() | sort %}
-          <p>
-            🧪 Attempt {{ attempt }} → 
-            Score: {{ data.score }}/{{ data.total }} 
-            ({{ ((data.score / data.total) * 100) | round(2) }}%)
-          </p>
-        {% endfor %}
-
-      {% else %}
-        <p>No attempts yet</p>
-      {% endif %}
-
-    </div>
-
-  {% endfor %}
+  </div>
 
 </div>
 

@@ -485,3 +485,74 @@ def add_instructor():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+# ------------------USER PAGE----------------
+@app.route("/admin/users")
+@login_required
+def admin_users():
+    if current_user.role != "admin":
+        return "Access Denied"
+    users = User.query.all()
+    instructors = {
+        u.id: u.name for u in User.query.filter_by(role="instructor").all()
+          }
+
+    return render_template("admin_users.html", users=users, instructors=instructors)
+
+# ------------------QUESTION PAGE----------------
+@app.route("/admin/questions")
+@login_required
+def admin_questions():
+    if current_user.role != "admin":
+        return "Access Denied"
+
+    questions = Question.query.all()
+    return render_template("admin_questions.html", questions=questions)
+
+
+# ------------------RESULT PAGE----------------
+@app.route("/admin/results")
+@login_required
+def admin_results():
+    if current_user.role != "admin":
+        return "Access Denied"
+
+    results = Result.query.all()
+    return render_template("admin_results.html", results=results)
+
+# ----------------ATTEMPTS PAGE----------------
+@app.route("/admin/attempts")
+@login_required
+def admin_attempts():
+    if current_user.role != "admin":
+        return "Access Denied"
+
+    from collections import defaultdict
+
+    users = User.query.filter_by(role="student").all()
+    results = Result.query.all()
+
+    student_attempts = defaultdict(lambda: defaultdict(list))
+
+    for r in results:
+        student_attempts[r.student_id][r.attempt].append(r)
+
+    student_scores = {}
+
+    for student_id, attempts in student_attempts.items():
+        student_scores[student_id] = {}
+
+        for attempt_no, records in attempts.items():
+            total = len(records)
+            correct = sum(1 for r in records if r.is_correct)
+
+            student_scores[student_id][attempt_no] = {
+                "score": correct,
+                "total": total
+            }
+
+    return render_template(
+        "admin_attempts.html",
+        users=users,
+        student_scores=student_scores
+    )

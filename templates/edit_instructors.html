@@ -1,0 +1,11 @@
+<h2>Edit Instructor</h2>
+
+<form method="POST">
+  <input type="text" name="name" value="{{ instructor.name }}" required><br><br>
+  <input type="email" name="email" value="{{ instructor.email }}" required><br><br>
+  <input type="text" name="password" value="{{ instructor.password }}" required><br><br>
+
+  <button type="submit">Update</button>
+</form>
+
+<a href="/admin/users">⬅ Back</a>
